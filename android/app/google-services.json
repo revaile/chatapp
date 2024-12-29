@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "944324164537",
+    "project_id": "minimal-app-b1c88",
+    "storage_bucket": "minimal-app-b1c88.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:944324164537:android:8e8eceb9009a5ac3f45468",
+        "android_client_info": {
+          "package_name": "com.ShadowChat.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQNj_-a2Z0SqxpJ5YsqNylQWqGqF9dPQE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:944324164537:android:e18aa745d7482655f45468",
+        "android_client_info": {
+          "package_name": "com.example.minimalchat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQNj_-a2Z0SqxpJ5YsqNylQWqGqF9dPQE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
