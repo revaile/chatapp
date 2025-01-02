@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:minimalchat/services/auth/auth_services.dart';
-import 'package:minimalchat/pages/settings_page.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -10,7 +9,6 @@ class CustomDrawer extends StatelessWidget {
     return Drawer(
       backgroundColor: Theme.of(context).colorScheme.background,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           DrawerHeader(
             child: Center(
@@ -32,23 +30,9 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(left: 25),
-            child: ListTile(
-              title: const Text('Settings'),
-              leading: const Icon(Icons.settings),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const SettingsPage()));
-              },
-            ),
-          ),
-          Padding(
             padding: const EdgeInsets.only(left: 25, bottom: 25),
             child: ListTile(
-              title: const Text('Settings'),
+              title: const Text('Logout'),
               leading: const Icon(Icons.logout),
               onTap: () {
                 Navigator.pop(context);

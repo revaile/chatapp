@@ -18,9 +18,6 @@ class HomePage extends StatelessWidget {
           backgroundColor: Colors.transparent,
           foregroundColor: Colors.grey,
           elevation: 0,
-          actions:[
-            IconButton(onPressed: (){}, icon:Icon(Icons.search_rounded,size: 30,))
-          ]
         ),
         drawer: const CustomDrawer(),
         body: _buildUser());
