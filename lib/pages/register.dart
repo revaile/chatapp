@@ -9,16 +9,16 @@ class RegisterPage extends StatelessWidget {
   final void Function()? onTap;
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =TextEditingController();
-   final TextEditingController usernameController =TextEditingController();
-
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
 
   void signUp(BuildContext context) async {
     final auth = AuthService();
     if (passwordController.text == confirmPasswordController.text) {
       try {
         await auth.signUpWithEmailAndPassword(emailController.text,
-            passwordController.text,usernameController.text);
+            passwordController.text, usernameController.text);
       } catch (e) {
         showDialog(
             context: context,
@@ -40,22 +40,24 @@ class RegisterPage extends StatelessWidget {
       body: Center(
         child: SingleChildScrollView(
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(
-              Icons.message,
-              size: 60,
-              color: Theme.of(context).colorScheme.primary,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(50),
+              child: Image.asset(
+                'assets/logoo.png',
+                width: 100,
+              ),
             ),
             const SizedBox(
               height: 50,
             ),
             const Text('Registre Here'),
             const SizedBox(height: 25),
-             CustomTextField(
+            CustomTextField(
               text: 'Username',
               obsecureText: false,
               controller: usernameController,
             ),
-             const SizedBox(
+            const SizedBox(
               height: 10,
             ),
             CustomTextField(
@@ -96,7 +98,8 @@ class RegisterPage extends StatelessWidget {
               children: [
                 Text(
                   'Already Have An Account ?',
-                  style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
                 GestureDetector(
                     onTap: onTap,

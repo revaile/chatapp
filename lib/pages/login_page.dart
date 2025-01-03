@@ -32,10 +32,12 @@ class LoginPage extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(
-            Icons.message_sharp,
-            size: 70,
-            color: Theme.of(context).colorScheme.primary,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(50),
+            child: Image.asset(
+              'assets/logoo.png',
+              width: 100,
+            ),
           ),
           const SizedBox(
             height: 10,

@@ -27,9 +27,6 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     focusNode.addListener(() {
       if (focusNode.hasFocus) {
-        //cause a delay so the keyboard has time to show up
-        //the amouint of remaining space wil be calculated
-        //then scroll down
         Future.delayed(const Duration(milliseconds: 500), () => scrollDown());
       }
     });
@@ -39,16 +36,17 @@ class _ChatPageState extends State<ChatPage> {
 
   void scrollDown() {
     scrollController.animateTo(scrollController.position.maxScrollExtent,
-        duration: const Duration(seconds: 1), curve: Curves.fastOutSlowIn);
+        duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
   }
 
   @override
   void dispose() {
     focusNode.dispose();
+    messageController.dispose();
+    scrollController.dispose();
     super.dispose();
   }
 
-  //send message
   void sendMessage(context) async {
     if (messageController.text.isNotEmpty) {
       await chatService.sendMessage(widget.receiverId, messageController.text);
@@ -67,85 +65,172 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.recieverUsername),
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.display_settings))
-        ],
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: Colors.white,
+              child: Text(
+                widget.recieverUsername[0].toUpperCase(),
+                style: const TextStyle(color: Colors.blue, fontSize: 16),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              widget.recieverUsername,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.blue,
+        elevation: 0,
       ),
-      body: Column(
-        children: [
-          //displau all chats
-          Expanded(child: _buildMessageList()),
-          _buildUserInput(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMessageList() {
-    String senderId = authService.getCurrentUser()!.uid;
-    print(senderId);
-    return StreamBuilder(
-        stream: chatService.getMessage(widget.receiverId, senderId),
-        builder: (context, snapShot) {
-          if (snapShot.hasError) {
-            return const Text('Error');
-          }
-          if (snapShot.connectionState == ConnectionState.waiting) {
-            return const Text('Loading');
-          }
-          // return the listview
-          return ListView(
-              controller: scrollController,
-              children: snapShot.data!.docs
-                  .map((data) => _buildMessageItem(data))
-                  .toList());
-        });
-  }
-
-  Widget _buildMessageItem(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    bool isCurrentUser = data["senderId"] == authService.getCurrentUser()!.uid;
-    print(data["meassage"]);
-    var alignment =
-        isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
-    return Container(
-        alignment: alignment,
+      body: Container(
+        color: Colors.grey[200],
         child: Column(
           children: [
-            ChatBubble(
-              message: data["meassage"],
-              isCurrentUser: isCurrentUser,
-            )
+            Expanded(child: _buildMessageList()),
+            _buildUserInput(),
           ],
-        ));
-  }
-
-  Widget _buildUserInput() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: CustomTextField(
-              text: 'Type Your Message',
-              obsecureText: false,
-              controller: messageController,
-              focusNode: focusNode,
-            ),
-          ),
-          Container(
-            decoration: const BoxDecoration(
-                color: Colors.green, shape: BoxShape.circle),
-            margin: const EdgeInsets.only(right: 10),
-            child: IconButton(
-                onPressed: () {
-                  sendMessage(context);
-                },
-                icon: const Icon(Icons.send)),
-          )
-        ],
+        ),
       ),
     );
   }
+
+Widget _buildMessageList() {
+  String senderId = authService.getCurrentUser()!.uid;
+  List<String> ids = [senderId, widget.receiverId];
+  ids.sort();
+  String chatroomId = ids.join('_'); // Hitung chatroomId
+
+  return StreamBuilder(
+    stream: chatService.getMessage(senderId, widget.receiverId),
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return const Center(child: Text('Error loading messages'));
+      }
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      // Perbaiki pemanggilan _buildMessageItem
+      return ListView(
+        controller: scrollController,
+        children: snapshot.data!.docs
+            .map((doc) => _buildMessageItem(doc, chatroomId)) // Tambahkan chatroomId sebagai argumen
+            .toList(),
+      );
+    },
+  );
+}
+
+
+Widget _buildMessageItem(DocumentSnapshot doc,  String chatroomId) {
+  Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+  // Pastikan data valid
+  if (data["senderId"] == null || data["meassage"] == null) {
+    return const SizedBox.shrink(); // Jangan tampilkan apa-apa jika data tidak valid
+  }
+
+  bool isCurrentUser = data["senderId"] == authService.getCurrentUser()!.uid;
+  var alignment = isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
+
+  return GestureDetector(
+    onLongPress: () => _deleteMessage(chatroomId, doc.id),
+    child: Container(
+      alignment: alignment,
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: ChatBubble(
+        message: data["meassage"] ?? '', // Gunakan default jika null
+        isCurrentUser: isCurrentUser,
+      ),
+    ),
+  );
+}
+
+Future<void> _deleteMessage(String chatroomId, String messageId) async {
+  await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text("Delete Message"),
+      content: const Text("Are you sure you want to delete this message?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () async {
+            try {
+              // Hapus pesan dari subkoleksi
+              await FirebaseFirestore.instance
+                  .collection('chat_rooms')
+                  .doc(chatroomId)
+                  .collection('messages')
+                  .doc(messageId)
+                  .delete();
+              
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Message deleted successfully")),
+              );
+            } catch (e) {
+              Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Failed to delete message: $e")),
+              );
+            }
+          },
+          child: const Text("Delete"),
+        ),
+      ],
+    ),
+  );
+}
+
+
+Widget _buildUserInput() {
+  return Container(
+    color: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+    child: Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: messageController,
+            focusNode: focusNode,
+            decoration: InputDecoration(
+              hintText: 'Type a message...',
+              filled: true,
+              fillColor: Colors.grey.shade100,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          decoration: const BoxDecoration(
+            color: Colors.blue,
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            onPressed: () {
+              sendMessage(context);
+            },
+            icon: const Icon(Icons.send, color: Colors.white),
+          ),
+        )
+      ],
+    ),
+  );
+}
+
 }

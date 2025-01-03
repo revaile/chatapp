@@ -18,29 +18,40 @@ class ChatService {
   }
 
   //send message
-  Future<void> sendMessage(String receiverId, message) async {
-    //get the current user info
+Future<void> sendMessage(String receiverId, String message) async {
+  try {
+    // Ambil info pengguna saat ini
     final String currentUserId = firebaseAuth.currentUser!.uid;
     final String currentUserEmail = firebaseAuth.currentUser!.email!;
     final Timestamp timestamp = Timestamp.now();
-    // create a new  message
+
+    // Buat pesan baru
     Message newMessage = Message(
-        senderId: currentUserId,
-        senderEmail: currentUserEmail,
-        receiverId: receiverId,
-        message: message,
-        timestamp: timestamp);
-    //creating a custom chat room id
+      senderId: currentUserId,
+      senderEmail: currentUserEmail,
+      receiverId: receiverId,
+      message: message,
+      timestamp: timestamp,
+    );
+
+    // Buat ID chatroom
     List<String> ids = [currentUserId, receiverId];
     ids.sort();
     String chatroomId = ids.join('_');
-    // add new messges to database
+
+    // Tambahkan pesan baru ke Firestore
     await firebaseFirestore
         .collection("chat_rooms")
         .doc(chatroomId)
         .collection("messages")
         .add(newMessage.toMap());
+
+    print("Pesan berhasil dikirim!");
+  } catch (e) {
+    print("Error saat mengirim pesan: $e");
   }
+}
+
   // get messages
 
   Stream<QuerySnapshot> getMessage(String userId, receiverId) {
@@ -62,4 +73,28 @@ class ChatService {
     }
   
   }
+Future<Map<String, dynamic>> getLastMessage(String userId) async {
+  // Contoh implementasi, misalnya menggunakan Firebase
+  final snapshot = await FirebaseFirestore.instance
+      .collection('chats')
+      .doc(userId)
+      .collection('messages')
+      .orderBy('timestamp', descending: true)
+      .limit(1)
+      .get();
+
+  if (snapshot.docs.isNotEmpty) {
+    final doc = snapshot.docs.first;
+    return {
+      'message': doc['message'],
+      'timestamp': doc['timestamp'],
+    };
+  }
+  return {};
+}
+
+
+
+
+
 }

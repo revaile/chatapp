@@ -12,10 +12,12 @@ class CustomDrawer extends StatelessWidget {
         children: [
           DrawerHeader(
             child: Center(
-              child: Icon(
-                Icons.message_sharp,
-                size: 65,
-                color: Theme.of(context).colorScheme.primary,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: Image.asset(
+                  'assets/logoo.png',
+                  width: 100,
+                ),
               ),
             ),
           ),

@@ -39,4 +39,22 @@ class AuthService {
   User? getCurrentUser() {
     return firebaseAuth.currentUser;
   }
+   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<Map<String, dynamic>?> getLastLogin(String userId) async {
+    try {
+      // Misalkan data pengguna disimpan di koleksi 'users'
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        final data = userDoc.data();
+        return {
+          'lastLogin': data?['lastLogin'], // Pastikan key ini sesuai dengan di database
+        };
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching last login: $e');
+      return null;
+    }
+  }
 }
